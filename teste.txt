@@ -1,0 +1,63 @@
+Pré requisito para todos os casos de uso:
+	Estar logado no sistema -> Novo caso de uso FAZER LOGIN
+
+	Ter autorização para ver a página que está sendo acessada
+
+LOGIN
+
+	Novo caso de uso FAZER LOGIN
+
+	O sistema deve fazer autenticação:
+		O usuário deve fornecer um "username" e uma senha.
+
+		Caso não seja informado um usuário ou uma senha retornará login inválido.
+
+	
+LOGIN - TÉCNICO
+
+	O que é preciso para fazer login(Classes)?
+	
+		grupo
+		login
+		papel
+		usuario
+
+	O que é preciso rodar para fazer o teste de login automático?
+
+		Preparação do banco de dados
+			
+			*Criar um arquivo específico de hibernate para a criação apenas das classes de login*
+
+			1 - Executar a classe "DropRepository" com arquivo hibernate geral(EXCLUIR TODAS AS TABELAS DO BANCO)
+
+			2 - Executar a classe "CreateRepository" com arquivo hibernate das classes específicas de login
+
+			3 - Executar a classe "PopulatePapeis"
+
+			4 - Executar a classe "PopulateGrupo"
+
+			5 - Executar a classe "PopulateUsuario"
+
+			*Executar as rotinas de testes(Cria-las)*
+
+
+Quais os grupos default?
+
+Grupo Test - Tem acesso a todas as páginas de cadastro e algumas de controle
+Grupo Admin - Tem acesso a tudo
+Grupo Funcionário - Tem acesso aos Fluxos de compra e venda
+
+Query para saber o acesso de cada grupo
+
+	select descricao_grupo, descricao_papel from grupo 
+	inner join grupo_papel on grupo.id_grupo = grupo_papel.id_grupo
+	inner join papel on papel.id_papel = grupo_papel.id_papel;
+
+
+Query para saber quantas páginas cada grupo pode ver
+	
+	select descricao_grupo, COUNT(descricao_papel) from grupo 
+	inner join grupo_papel on grupo.id_grupo = grupo_papel.id_grupo
+	inner join papel on papel.id_papel = grupo_papel.id_papel
+	GROUP BY (descricao_grupo);
+
