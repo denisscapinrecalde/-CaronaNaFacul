@@ -1,4 +1,4 @@
-package caronanafacul.com.br.caronanafacul;
+package br.com.caronanafacul.mobile.android.activity;
 
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -23,6 +23,8 @@ import org.json.JSONObject;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import caronanafacul.com.br.caronanafacul.R;
 
 public class MainActivity extends AppCompatActivity {
 
