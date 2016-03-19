@@ -1,12 +1,13 @@
 package caronanafacul.com.br.caronanafacul;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.CallbackManager;
@@ -20,59 +21,35 @@ import com.facebook.login.widget.LoginButton;
 
 import org.json.JSONObject;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 public class MainActivity extends AppCompatActivity {
+
+    private static final String PACKAGE_NAME = "caronanafacul.com.br.caronanafacul";
 
     private CallbackManager callbackManager;
     private LoginButton loginButton;
-    private TextView btnLogin;
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_main);
-        inicializarComponentes();
+
+        initComponents();
+        setEventsAndConfigurations();
+        logPackageHashKey(PACKAGE_NAME);
     }
 
-    private void inicializarComponentes() {
+    private void initComponents() {
         loginButton = (LoginButton) findViewById(R.id.loginButton);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-
         callbackManager = CallbackManager.Factory.create();
+    }
 
-        loginButton = (LoginButton) findViewById(R.id.loginButton);
+    private void setEventsAndConfigurations(){
         loginButton.setReadPermissions("public_profile", "email", "user_friends");
-
-//        btnLogin= (TextView) findViewById(R.id.btnLogin);
-//        btnLogin.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//
-//                progressDialog = new ProgressDialog(LoginActivity.this);
-//                progressDialog.setMessage("Loading...");
-//                progressDialog.show();
-//
-//                loginButton.performClick();
-//
-//                loginButton.setPressed(true);
-//
-//                loginButton.invalidate();
-//
-//                loginButton.registerCallback(callbackManager, mCallBack);
-//
-//                loginButton.setPressed(false);
-//
-//                loginButton.invalidate();
-//
-//            }
-//        });
+        loginButton.registerCallback(callbackManager, facebookLoginCallback);
     }
 
     @Override
@@ -81,20 +58,22 @@ public class MainActivity extends AppCompatActivity {
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
-    private FacebookCallback<LoginResult> mCallBack = new FacebookCallback<LoginResult>() {
+    /**
+     * Método de callback de login do facebook.
+     * Em caso de sucesso, cacelamento ou erro os respectivos códigos serão executados
+     */
+    private FacebookCallback<LoginResult> facebookLoginCallback = new FacebookCallback<LoginResult>() {
+
+        /**
+         * Método que será executado em caso de sucesso ao fazer login com o facebook
+         * @param loginResult
+         */
         @Override
         public void onSuccess(LoginResult loginResult) {
+            GraphRequest request = GraphRequest.newMeRequest( loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
 
-            progressDialog.dismiss();
-
-            // App code
-            GraphRequest request = GraphRequest.newMeRequest(
-                    loginResult.getAccessToken(),
-                    new GraphRequest.GraphJSONObjectCallback() {
                         @Override
-                        public void onCompleted(
-                                JSONObject object,
-                                GraphResponse response) {
+                        public void onCompleted(JSONObject object, GraphResponse response) {
 
                             Log.e("response: ", response + "");
                             try {
@@ -105,19 +84,12 @@ public class MainActivity extends AppCompatActivity {
 //                                user.gender = object.getString("gender").toString();
 //                                PrefUtils.setCurrentUser(user,LoginActivity.this);
 
-                                Toast.makeText(MainActivity.this,"welcome " + object.getString("email").toString(),Toast.LENGTH_LONG).show();
-
-
-                            }catch (Exception e){
+                                Toast.makeText(MainActivity.this, "welcome " + object.getString("email").toString(), Toast.LENGTH_LONG).show();
+                            } catch (Exception e) {
+                                //TODO tratar isso direito
                                 e.printStackTrace();
                             }
-//
-//                            Intent intent=new Intent(LoginActivity.this,LogoutActivity.class);
-//                            startActivity(intent);
-//                            finish();
-
                         }
-
                     });
 
             Bundle parameters = new Bundle();
@@ -126,15 +98,44 @@ public class MainActivity extends AppCompatActivity {
             request.executeAsync();
         }
 
+        /**
+         * Método que será executado em caso de cancelamento ao fazer login com o facebook
+         */
         @Override
         public void onCancel() {
-            progressDialog.dismiss();
+
         }
 
+        /**
+         * Método que será executado em caso de falha ao fazer login com o facebook
+         * @param e
+         */
         @Override
         public void onError(FacebookException e) {
-            progressDialog.dismiss();
+
         }
     };
 
+    /**
+     * Metódo responsável por logar o hash key da aplicação, essa hash será utilizada para fazer login no facebook(não é necessário logar essa informação toda hora)
+     *
+     * @param packageName nome do pacote principal da classe, pode ser obtido no AndroidManifest
+     */
+    private void logPackageHashKey(String packageName) {
+        try {
+
+            PackageInfo info = getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.e("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+
+        } catch (PackageManager.NameNotFoundException e) {
+            //TODO tratar isso direito
+
+        } catch (NoSuchAlgorithmException e) {
+            //TODO tratar isso direito
+        }
+    }
 }
