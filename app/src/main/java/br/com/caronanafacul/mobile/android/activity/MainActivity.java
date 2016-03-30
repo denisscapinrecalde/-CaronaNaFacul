@@ -24,7 +24,8 @@ import org.json.JSONObject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import caronanafacul.com.br.caronanafacul.R;
+import br.com.caronanafacul.mobile.android.R;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -87,6 +88,11 @@ public class MainActivity extends AppCompatActivity {
 //                                PrefUtils.setCurrentUser(user,LoginActivity.this);
 
                                 Toast.makeText(MainActivity.this, "welcome " + object.getString("email").toString(), Toast.LENGTH_LONG).show();
+
+                                Intent i = new Intent();
+                                i.setClass(MainActivity.this,HomeActivity.class);
+                                startActivity(i);
+
                             } catch (Exception e) {
                                 //TODO tratar isso direito
                                 e.printStackTrace();
