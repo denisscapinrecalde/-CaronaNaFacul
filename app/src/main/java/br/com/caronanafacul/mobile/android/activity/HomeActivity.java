@@ -3,51 +3,116 @@ package br.com.caronanafacul.mobile.android.activity;
 /**
  * Created by Rodrigo on 30/03/2016.
  */
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ListView;
 
+import java.util.List;
+
+import adapter.CaronaAdapter;
 import br.com.caronanafacul.mobile.android.R;
+import br.com.caronanafacul.mobile.android.repository.CaronaRepositoryRest;
+import br.com.caronanafacul.mobile.android.repository.UsuarioRepositoryRest;
+import br.com.caronanafacul.mobile.android.model.Carona;
+import br.com.caronanafacul.mobile.android.model.Usuario;
 
 
 public class HomeActivity extends AppCompatActivity {
-    private DrawerLayout mDrawer;
+
+    private class GetCaronasTask extends AsyncTask<Usuario, Integer, List<Carona>> {
+
+        private GetCaronasTask() {
+        }
+
+        @Override
+        protected List<Carona> doInBackground(Usuario... params) {
+            CaronaRepositoryRest placeRepository = new CaronaRepositoryRest();
+            return placeRepository.getCaronasByUserId(params[0].getId());
+            //TODO fazer tratamento para falta de internet
+        }
+
+        @Override
+        protected void onPostExecute(List<Carona> caronas) {
+            lvHomeContent.setAdapter(new CaronaAdapter(caronas, HomeActivity.this));
+        }
+    }
+
+    private class GetUsuarioTask extends AsyncTask<String, Integer, Usuario> {
+
+        private GetUsuarioTask() {
+        }
+
+        @Override
+        protected Usuario doInBackground(String... strings) {
+            Usuario usuario = new UsuarioRepositoryRest().getUserByEmail(strings[0]);
+            Log.e("Usuario",usuario.toString());
+            return usuario;
+        }
+
+        @Override
+        protected void onPostExecute(Usuario usuario) {
+            getIntent().putExtra(getResources().getString(R.string.extra_key_usuario), usuario);
+            loadCaronas(usuario);
+        }
+    }
+
+    private DrawerLayout drawerLayout;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
+    private ListView lvHomeContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home_activity);
 
-        // Set a Toolbar to replace the ActionBar.
+        initComponents();
+        setEventsAndConfigurations();
+    }
+
+    private void initComponents() {
+        lvHomeContent = (ListView) findViewById(R.id.home_content);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        nvDrawer = (NavigationView) findViewById(R.id.nvView);
+    }
+
+    private void setEventsAndConfigurations(){
+        toolbar.setTitle(R.string.title_home_activity);
         setSupportActionBar(toolbar);
 
-        // Find our drawer view
-        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawerLayout.setDrawerListener(drawerToggle);
         drawerToggle = setupDrawerToggle();
-
-        // Tie DrawerLayout events to the ActionBarToggle
-        mDrawer.setDrawerListener(drawerToggle);
-        // Find our drawer view
-        nvDrawer = (NavigationView) findViewById(R.id.nvView);
-        // Setup drawer view
         setupDrawerContent(nvDrawer);
 
+        //TODO pegar esse email da activity main(facebook)
+        loadUsuario("teste@lab");
+    }
+
+    public void loadCaronas(Usuario usuario){
+        new GetCaronasTask().execute(usuario);
+    }
+
+    public void loadUsuario(String email){
+        new GetUsuarioTask().execute(email);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
-        return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open,  R.string.drawer_close);
+        return new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.drawer_open,  R.string.drawer_close);
     }
 
     // `onPostCreate` called when activity start-up is complete after `onStart()`
@@ -111,11 +176,19 @@ public class HomeActivity extends AppCompatActivity {
         // Highlight the selected item has been done by NavigationView
         // menuItem.setChecked(true);
         setTitle(menuItem.getTitle());
-        mDrawer.closeDrawers();
+        drawerLayout.closeDrawers();
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        String extraKeyUsuario = getResources().getString(R.string.extra_key_usuario);
+
+        if(item.getItemId() == R.id.action_new){
+            Intent intent = new Intent(HomeActivity.this, CaronaFormActivity.class);
+            intent.putExtra(extraKeyUsuario , getIntent().getSerializableExtra(extraKeyUsuario));
+            startActivity(intent);
+        }
+
         // The action bar home/up action should open or close the drawer.
         if (drawerToggle.onOptionsItemSelected(item)) {
             return true;
@@ -123,4 +196,10 @@ public class HomeActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_caronas, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 }

@@ -25,11 +25,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import br.com.caronanafacul.mobile.android.R;
+import br.com.caronanafacul.mobile.android.model.Usuario;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String PACKAGE_NAME = "caronanafacul.com.br.caronanafacul";
+    private static final String PACKAGE_NAME = "br.com.caronanafacul.mobile.android";
 
     private CallbackManager callbackManager;
     private LoginButton loginButton;
@@ -80,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
 
                             Log.e("response: ", response + "");
                             try {
+
+                                //TODO arrumar essas informações que devem retiradas do facebook
 //                                user = new User();
 //                                user.facebookID = object.getString("id").toString();
 //                                user.email = object.getString("email").toString();
@@ -89,8 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 Toast.makeText(MainActivity.this, "welcome " + object.getString("email").toString(), Toast.LENGTH_LONG).show();
 
-                                Intent i = new Intent();
-                                i.setClass(MainActivity.this,HomeActivity.class);
+                                Intent i = new Intent(MainActivity.this,HomeActivity.class);
                                 startActivity(i);
 
                             } catch (Exception e) {
