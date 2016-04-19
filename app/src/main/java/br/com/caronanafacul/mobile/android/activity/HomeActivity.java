@@ -22,7 +22,7 @@ import android.widget.ListView;
 
 import java.util.List;
 
-import adapter.CaronaAdapter;
+import br.com.caronanafacul.mobile.android.adapter.CaronaAdapter;
 import br.com.caronanafacul.mobile.android.R;
 import br.com.caronanafacul.mobile.android.repository.CaronaRepositoryRest;
 import br.com.caronanafacul.mobile.android.repository.UsuarioRepositoryRest;
@@ -58,7 +58,8 @@ public class HomeActivity extends AppCompatActivity {
         @Override
         protected Usuario doInBackground(String... strings) {
             Usuario usuario = new UsuarioRepositoryRest().getUserByEmail(strings[0]);
-            Log.e("Usuario",usuario.toString());
+                getIntent().putExtra(getResources().getString(R.string.extra_key_usuario), usuario);
+                Log.e("Usuario", usuario.toString());
             return usuario;
         }
 
@@ -100,7 +101,7 @@ public class HomeActivity extends AppCompatActivity {
         setupDrawerContent(nvDrawer);
 
         //TODO pegar esse email da activity main(facebook)
-        loadUsuario("teste@lab");
+        loadUsuario("usuario2@test");
     }
 
     public void loadCaronas(Usuario usuario){
@@ -185,7 +186,8 @@ public class HomeActivity extends AppCompatActivity {
 
         if(item.getItemId() == R.id.action_new){
             Intent intent = new Intent(HomeActivity.this, CaronaFormActivity.class);
-            intent.putExtra(extraKeyUsuario , getIntent().getSerializableExtra(extraKeyUsuario));
+            Log.e("Colocando objeto usuar",getIntent().getSerializableExtra(extraKeyUsuario).toString());
+            intent.putExtra(extraKeyUsuario, getIntent().getSerializableExtra(extraKeyUsuario));
             startActivity(intent);
         }
 

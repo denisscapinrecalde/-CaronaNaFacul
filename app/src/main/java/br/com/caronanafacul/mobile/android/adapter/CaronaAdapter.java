@@ -1,4 +1,4 @@
-package adapter;
+package br.com.caronanafacul.mobile.android.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;

@@ -6,19 +6,19 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.GsonHttpMessageConverter;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import br.com.caronanafacul.mobile.android.model.Carona;
-import br.com.caronanafacul.mobile.android.model.Usuario;
 
 /**
  * Created by bruno on 13/04/16.
@@ -28,11 +28,20 @@ public class CaronaRepositoryRest {
     //TODO refatorar essa porra toda
     public void put(Carona carona){
         String uri = "http://52.34.246.113:8080/CaronaNaFaculServer/carona";
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
+
+        Log.e("PUT Carona", carona.toString());
 
         Log.e("Carona PUT", "Dentro do PUT");
         RestTemplate restTemplate = new RestTemplate();
 
-        restTemplate.put(uri, carona);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<?> entity = new HttpEntity<String>(gson.toJson(carona),headers);
+        restTemplate.put(uri, entity,String.class);
     }
 
 
