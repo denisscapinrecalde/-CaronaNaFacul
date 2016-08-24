@@ -18,51 +18,46 @@ import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import br.com.caronanafacul.mobile.android.R;
 import br.com.caronanafacul.mobile.android.model.Carona;
+import br.com.caronanafacul.mobile.android.model.Usuario;
 
-/**
- * Created by bruno on 13/04/16.
- */
-public class CaronaRepositoryRest {
 
-    //TODO refatorar essa porra toda
-    public void put(Carona carona){
-        String uri = "http://52.34.246.113:8080/CaronaNaFaculServer/carona";
-        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
+public class CaronaRepositoryRest extends Repository implements CaronaRepository {
 
-        Log.e("PUT Carona", carona.toString());
+    private String formatoData = "yyyy-MM-dd'T'HH:mm:ss"; //TODO colocar isso em ma classe útil genérica, ou xml
 
-        Log.e("Carona PUT", "Dentro do PUT");
-        RestTemplate restTemplate = new RestTemplate();
-
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<?> entity = new HttpEntity<String>(gson.toJson(carona),headers);
-        restTemplate.put(uri, entity,String.class);
+    public CaronaRepositoryRest() {
+        super("/CaronaNaFaculServer/carona", MediaType.APPLICATION_JSON); //TODO pegar isso do arquivo XML
     }
 
+    public void post(Carona carona){
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(getMediaType());
 
-    public List<Carona> getCaronasByUserId(int userId){
-        String URL = "http://52.34.246.113:8080/CaronaNaFaculServer/carona?user="+userId;
+        Gson gson = new GsonBuilder().setDateFormat(formatoData).create();
+        HttpEntity<?> entity = new HttpEntity<String>(gson.toJson(carona),headers);
 
         RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<Carona> httpEntity = restTemplate.postForEntity(getURI(), entity, Carona.class);
+        httpEntity.getBody();
+    }
 
+    public List<Carona> getCaronasByUserId(int userId){
+        String parametros = "?user=" + userId;
+        String URL = getURI().concat(parametros);
+
+        RestTemplate restTemplate = new RestTemplate();
         String json = restTemplate.getForObject(URL, String.class);
 
         Type collectionType = new TypeToken<List<Carona>>() {}.getType();
+        Log.e("[getCaronasByUserId JS]", json);
 
-        Log.e("Caronas JSON", json);
+        //TODO mudar, marretada
+        String newJson = json.replace("{\"carona\":","").replace("]}", "]");
 
-        String newJson = json.replace("{\"carona\":","");
-        String newJson2 = newJson.replace("]}", "]");
-
-        //TODO trocar essa parada, tá demorando demais
-        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
-
-        List<Carona> caronas = gson.fromJson(newJson2, collectionType);
+        Gson gson = new GsonBuilder().setDateFormat(formatoData).create();
+        List<Carona> caronas = gson.fromJson(newJson, collectionType);
 
         return caronas;
     }

@@ -1,5 +1,6 @@
 package br.com.caronanafacul.mobile.android.activity;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -29,15 +31,19 @@ public class CaronaFormActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Carona... params) {
             CaronaRepositoryRest placeRepository = new CaronaRepositoryRest();
-            placeRepository.put(params[0]);
+            placeRepository.post(params[0]);
+            Toast.makeText(CaronaFormActivity.this, "Carona Adicionada com sucesso!", Toast.LENGTH_LONG).show();
+            Intent i = new Intent(CaronaFormActivity.this,HomeActivity.class);
+            i.putExtra(getResources().getString(R.string.extra_key_usuario), (Usuario) getIntent().getSerializableExtra(getResources().getString(R.string.extra_key_usuario)));
+            startActivity(i);
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
             //TODO colocar aqui uma mensagem para sucesso ou erro
             //TODO voltar para a página inicial
+
         }
     }
 

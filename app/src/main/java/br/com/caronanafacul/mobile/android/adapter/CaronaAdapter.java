@@ -48,17 +48,18 @@ public class CaronaAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.carona_item, null);
         }
 
-        SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-
-        //TODO fazer cache ViewHolder
-        TextView tvPartida = (TextView) convertView.findViewById(R.id.ltPartida);
-        TextView tvHorario = (TextView) convertView.findViewById(R.id.ltHorario);
-
         Carona carona = data.get(position);
 
-        tvPartida.setText(String.valueOf(carona.getPontoPartida()));
-        tvHorario.setText(sd.format(carona.getHorario()));
+        if(carona != null){
+            SimpleDateFormat sd = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
+            //TODO fazer cache ViewHolder
+            TextView tvPartida = (TextView) convertView.findViewById(R.id.ltPartida);
+            TextView tvHorario = (TextView) convertView.findViewById(R.id.ltHorario);
+
+            tvPartida.setText(String.valueOf(carona.getPontoPartida()));
+            tvHorario.setText(sd.format(carona.getHorario()));
+        }
         return convertView;
     }
 }

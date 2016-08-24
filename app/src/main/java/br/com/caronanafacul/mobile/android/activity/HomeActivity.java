@@ -19,7 +19,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import br.com.caronanafacul.mobile.android.adapter.CaronaAdapter;
@@ -31,6 +33,31 @@ import br.com.caronanafacul.mobile.android.model.Usuario;
 
 
 public class HomeActivity extends AppCompatActivity {
+
+    private class LoginTask extends AsyncTask<Usuario, Integer, Usuario> {
+
+        private Usuario usuario;
+
+        public LoginTask(Usuario usuario) {
+            this.usuario = usuario;
+        }
+
+        @Override
+        protected Usuario doInBackground(Usuario... usuarios) {
+            //TODO fazer tratamento para falta de internet
+            //TODO colocar no banco de dados do celular por um certo tempo para não usar a internet toda hora
+            Usuario usuario = new UsuarioRepositoryRest().post(this.usuario);
+            getIntent().putExtra(getResources().getString(R.string.extra_key_usuario), usuario);
+            Log.e("Usuario", usuario.toString());
+            return usuario  ;
+        }
+
+        @Override
+        protected void onPostExecute(Usuario usuario) {
+            loadCaronas(usuario);
+            Toast.makeText(HomeActivity.this, "Bem Vindo " + usuario.getNome(), Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private class GetCaronasTask extends AsyncTask<Usuario, Integer, List<Carona>> {
 
@@ -46,27 +73,7 @@ public class HomeActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(List<Carona> caronas) {
-            lvHomeContent.setAdapter(new CaronaAdapter(caronas, HomeActivity.this));
-        }
-    }
-
-    private class GetUsuarioTask extends AsyncTask<String, Integer, Usuario> {
-
-        private GetUsuarioTask() {
-        }
-
-        @Override
-        protected Usuario doInBackground(String... strings) {
-            Usuario usuario = new UsuarioRepositoryRest().getUserByEmail(strings[0]);
-                getIntent().putExtra(getResources().getString(R.string.extra_key_usuario), usuario);
-                Log.e("Usuario", usuario.toString());
-            return usuario;
-        }
-
-        @Override
-        protected void onPostExecute(Usuario usuario) {
-            getIntent().putExtra(getResources().getString(R.string.extra_key_usuario), usuario);
-            loadCaronas(usuario);
+          lvHomeContent.setAdapter(new CaronaAdapter(caronas, HomeActivity.this));
         }
     }
 
@@ -100,16 +107,12 @@ public class HomeActivity extends AppCompatActivity {
         drawerToggle = setupDrawerToggle();
         setupDrawerContent(nvDrawer);
 
-        //TODO pegar esse email da activity main(facebook)
-        loadUsuario("usuario2@test");
+        Usuario usuario = (Usuario) getIntent().getSerializableExtra(getResources().getString(R.string.extra_key_usuario));
+        new LoginTask(usuario).execute();
     }
 
     public void loadCaronas(Usuario usuario){
         new GetCaronasTask().execute(usuario);
-    }
-
-    public void loadUsuario(String email){
-        new GetUsuarioTask().execute(email);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -156,9 +159,7 @@ public class HomeActivity extends AppCompatActivity {
             case R.id.nav_second_fragment:
                 //fragmentClass = SecondFragment.class;
                 break;
-            case R.id.nav_third_fragment:
-                //fragmentClass = ThirdFragment.class;
-                break;
+
             default:
                 //fragmentClass = FirstFragment.class;
         }
